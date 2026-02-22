@@ -1,0 +1,47 @@
+# ZED X Mini override config for robot integration
+# cuVSLAM handles positional tracking, so we disable it in the ZED SDK.
+# We enable gray + left/right images for cuVSLAM stereo input.
+---
+/**:
+    ros__parameters:
+        general:
+            grab_resolution: 'HD1200'
+            grab_frame_rate: 30
+            pub_resolution: 'CUSTOM'
+            pub_downscale_factor: 2.0
+            pub_frame_rate: 15.0
+
+        video:
+            publish_rgb: true
+            publish_left_right: true
+            publish_gray: true
+            publish_raw: false
+            publish_stereo: false
+
+        depth:
+            depth_mode: 'NEURAL_LIGHT'
+            min_depth: 0.1
+            max_depth: 10.0
+            point_cloud_freq: 10.0
+            publish_depth_map: true
+            publish_point_cloud: true
+
+        sensors:
+            publish_imu: true
+            sensors_pub_rate: 200.0
+            sensors_required: false
+
+        pos_tracking:
+            pos_tracking_enabled: false
+
+        mapping:
+            mapping_enabled: false
+
+        object_detection:
+            od_enabled: false
+
+        body_tracking:
+            bt_enabled: false
+
+        debug:
+            sdk_verbose: 0

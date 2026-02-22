@@ -1,0 +1,23 @@
+left_arm:
+  default_planner_config: RRTConnect
+  planner_configs:
+    - RRTConnect
+    - RRT
+    - PRM
+
+right_arm:
+  default_planner_config: RRTConnect
+  planner_configs:
+    - RRTConnect
+    - RRT
+    - PRM
+
+both_arms:
+  default_planner_config: RRTConnect
+  planner_configs:
+    - RRTConnect
+
+head:
+  default_planner_config: RRTConnect
+  planner_configs:
+    - RRTConnect

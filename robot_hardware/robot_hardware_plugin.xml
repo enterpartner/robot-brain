@@ -1,0 +1,10 @@
+<library path="robot_hardware">
+  <class name="robot_hardware/RobStrideHardwareInterface"
+         type="robot_hardware::RobStrideHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      RobStride motor hardware interface over CAN bus for ros2_control.
+      Supports RS-01, RS-02, RS-03, RS-04 motors via SocketCAN.
+    </description>
+  </class>
+</library>

@@ -1,0 +1,27 @@
+nvblox_node:
+  ros__parameters:
+    # Bemeneti topicok (ZED X Mini)
+    depth_image_topic: "/zed/zed_node/depth/depth_registered"
+    color_image_topic: "/zed/zed_node/rgb/image_rect_color"
+    depth_camera_info_topic: "/zed/zed_node/depth/camera_info"
+    color_camera_info_topic: "/zed/zed_node/rgb/camera_info"
+
+    # Frame-ek
+    global_frame: "odom"
+    map_clearing_radius: 5.0
+
+    # Voxel meret (kisebb = pontosabb, de tobb GPU)
+    voxel_size: 0.05
+
+    # Costmap kimenet Nav2-nek
+    costmap_publication_frequency: 2.0
+    esdf_publication_frequency: 2.0
+
+    # Hatotav
+    max_integration_distance: 5.0
+    min_integration_distance: 0.1
+
+    # Slice magassag a costmap-hez (robot magassaganal vagja)
+    slice_height: 0.3       # MODOSITSD a robot tenyleges magassagahoz!
+    max_obstacle_height: 2.0
+    min_obstacle_height: 0.1

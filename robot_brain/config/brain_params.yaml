@@ -1,0 +1,18 @@
+brain_node:
+  ros__parameters:
+    # Ollama settings
+    ollama_url: "http://localhost:11434"
+    model_name: "llava:7b"
+    inference_timeout_sec: 120.0
+
+    # ZED camera topics
+    rgb_topic: "/zed/zed_node/rgb/color/rect/image"
+    depth_topic: "/zed/zed_node/depth/depth_registered"
+
+    # Image processing
+    jpeg_quality: 85
+    max_image_width: 1280
+
+    # Depth analysis grid (divide image into NxN cells for depth summary)
+    depth_grid_rows: 3
+    depth_grid_cols: 3

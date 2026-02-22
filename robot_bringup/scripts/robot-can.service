@@ -1,0 +1,23 @@
+[Unit]
+Description=Robot CAN Bus Setup (can0: left arm, can1: right arm)
+After=network-pre.target
+Before=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# MODOSITSD a bitrate-et ha kell
+ExecStart=/bin/bash -c '\
+  for iface in can0 can1; do \
+    ip link set $iface down 2>/dev/null || true; \
+    ip link set $iface type can bitrate 1000000 restart-ms 100; \
+    ip link set $iface txqueuelen 1000; \
+    ip link set $iface up; \
+  done'
+ExecStop=/bin/bash -c '\
+  for iface in can0 can1; do \
+    ip link set $iface down 2>/dev/null || true; \
+  done'
+
+[Install]
+WantedBy=multi-user.target

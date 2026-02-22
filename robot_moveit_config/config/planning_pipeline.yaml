@@ -1,0 +1,24 @@
+# Planning pipeline configuration
+# cuMotion = NVIDIA GPU-accelerated motion planner (Isaac ROS)
+# OMPL = fallback CPU planner
+
+planning_pipelines:
+  pipeline_names:
+    - ompl
+    # - cumotion  # Uncomment when cuMotion plugin is verified
+
+ompl:
+  planning_plugin: ompl_interface/OMPLPlanner
+  request_adapters: >-
+    default_planner_request_adapters/AddTimeOptimalParameterization
+    default_planner_request_adapters/ResolveConstraintFrames
+    default_planner_request_adapters/FixWorkspaceBounds
+    default_planner_request_adapters/FixStartStateBounds
+    default_planner_request_adapters/FixStartStateCollision
+    default_planner_request_adapters/FixStartStatePathConstraints
+  start_state_max_bounds_error: 0.1
+
+# cuMotion pipeline (GPU-accelerated)
+# Uncomment when isaac_ros_cumotion_moveit is verified working
+# cumotion:
+#   planning_plugin: "isaac_ros_cumotion::CumotionPlanner"

@@ -1,0 +1,30 @@
+safety_node:
+  ros__parameters:
+    # === VELOCITY LIMITS ===
+    # Maximum base velocity (m/s)
+    max_linear_velocity: 0.5
+    max_angular_velocity: 1.0
+
+    # Reduced speed when human detected (m/s)
+    human_near_linear_velocity: 0.15
+    human_near_angular_velocity: 0.3
+
+    # === HUMAN PROXIMITY ===
+    # Distance thresholds (meters)
+    human_slow_distance: 2.0    # Slow down when human closer than this
+    human_stop_distance: 0.5    # Full stop when human closer than this
+    human_detection_timeout: 1.0 # Seconds before detection expires
+
+    # === E-STOP ===
+    # Watchdog: if no cmd_vel for this many seconds, stop
+    cmd_vel_timeout: 0.5
+
+    # === TOPICS ===
+    input_cmd_vel_topic: "/cmd_vel_raw"
+    output_cmd_vel_topic: "/cmd_vel"
+    estop_service: "~/estop"
+    estop_reset_service: "~/estop_reset"
+
+    # Human detection topic (from nvblox or PeopleSegNet)
+    human_distance_topic: "/nvblox_node/human_distance"
+    detections_topic: "/rt_detr/detections"

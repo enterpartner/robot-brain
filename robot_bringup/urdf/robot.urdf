@@ -1,0 +1,615 @@
+<?xml version="1.0"?>
+<robot name="robot">
+
+  <!-- ============================================================ -->
+  <!-- Robot URDF: Base + Torso + 2x 7DOF RobStride arms + Grippers -->
+  <!--             + Head pan/tilt + ZED X Mini                      -->
+  <!--                                                               -->
+  <!-- RobStride motor config (per arm):                             -->
+  <!--   J1 (shoulder_yaw):   RS-04 (nagy nyomatek)                  -->
+  <!--   J2 (shoulder_pitch): RS-04                                  -->
+  <!--   J3 (shoulder_roll):  RS-03                                  -->
+  <!--   J4 (elbow_pitch):    RS-03                                  -->
+  <!--   J5 (wrist_yaw):      RS-02                                  -->
+  <!--   J6 (wrist_pitch):    RS-02                                  -->
+  <!--   J7 (wrist_roll):     RS-01                                  -->
+  <!--   Gripper:              RS-01                                  -->
+  <!--                                                               -->
+  <!-- CAN bus: can0 = bal kar, can1 = jobb kar                      -->
+  <!-- MODOSITSD a tenyleges meretekhez!                             -->
+  <!-- ============================================================ -->
+
+  <!-- ==================== BASE ==================== -->
+  <link name="base_footprint"/>
+  <link name="base_link">
+    <visual>
+      <geometry><box size="0.5 0.4 0.2"/></geometry>
+      <material name="dark_grey"><color rgba="0.3 0.3 0.3 1"/></material>
+    </visual>
+    <collision>
+      <geometry><box size="0.5 0.4 0.2"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="15.0"/>
+      <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.15" iyz="0" izz="0.2"/>
+    </inertial>
+  </link>
+  <joint name="base_footprint_to_base" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Wheels -->
+  <link name="wheel_left_link">
+    <visual>
+      <geometry><cylinder radius="0.08" length="0.04"/></geometry>
+      <material name="black"><color rgba="0.1 0.1 0.1 1"/></material>
+    </visual>
+    <collision><geometry><cylinder radius="0.08" length="0.04"/></geometry></collision>
+    <inertial><mass value="0.5"/><inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/></inertial>
+  </link>
+  <joint name="wheel_left_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_left_link"/>
+    <origin xyz="0 0.22 -0.02" rpy="-1.5708 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="wheel_right_link">
+    <visual>
+      <geometry><cylinder radius="0.08" length="0.04"/></geometry>
+      <material name="black"/>
+    </visual>
+    <collision><geometry><cylinder radius="0.08" length="0.04"/></geometry></collision>
+    <inertial><mass value="0.5"/><inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/></inertial>
+  </link>
+  <joint name="wheel_right_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_right_link"/>
+    <origin xyz="0 -0.22 -0.02" rpy="-1.5708 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Caster -->
+  <link name="caster_link">
+    <visual><geometry><sphere radius="0.04"/></geometry><material name="black"/></visual>
+    <collision><geometry><sphere radius="0.04"/></geometry></collision>
+    <inertial><mass value="0.2"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/></inertial>
+  </link>
+  <joint name="caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+    <origin xyz="-0.2 0 -0.06" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== TORSO ==================== -->
+  <link name="torso_link">
+    <visual>
+      <geometry><cylinder radius="0.1" length="0.5"/></geometry>
+      <material name="silver"><color rgba="0.7 0.7 0.75 1"/></material>
+    </visual>
+    <collision><geometry><cylinder radius="0.1" length="0.5"/></geometry></collision>
+    <inertial><mass value="5.0"/><inertia ixx="0.05" ixy="0" ixz="0" iyy="0.05" iyz="0" izz="0.02"/></inertial>
+  </link>
+  <joint name="base_to_torso" type="fixed">
+    <parent link="base_link"/>
+    <child link="torso_link"/>
+    <origin xyz="0 0 0.35" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Waist (shoulder mount point) -->
+  <link name="waist_link">
+    <visual>
+      <geometry><box size="0.12 0.45 0.08"/></geometry>
+      <material name="silver"/>
+    </visual>
+    <collision><geometry><box size="0.12 0.45 0.08"/></geometry></collision>
+    <inertial><mass value="2.0"/><inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/></inertial>
+  </link>
+  <joint name="torso_to_waist" type="fixed">
+    <parent link="torso_link"/>
+    <child link="waist_link"/>
+    <origin xyz="0 0 0.25" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== LEFT ARM (7 DOF) ==================== -->
+  <!-- J1: shoulder_yaw (RS-04) -->
+  <link name="left_shoulder_yaw_link">
+    <visual><geometry><cylinder radius="0.045" length="0.08"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.045" length="0.08"/></geometry></collision>
+    <inertial><mass value="1.2"/><inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/></inertial>
+  </link>
+  <joint name="left_shoulder_yaw_joint" type="revolute">
+    <parent link="waist_link"/>
+    <child link="left_shoulder_yaw_link"/>
+    <origin xyz="0 0.2 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.96" upper="2.96" effort="40" velocity="2.0"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+
+  <!-- J2: shoulder_pitch (RS-04) -->
+  <link name="left_shoulder_pitch_link">
+    <visual><geometry><cylinder radius="0.045" length="0.08"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.045" length="0.08"/></geometry></collision>
+    <inertial><mass value="1.2"/><inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/></inertial>
+  </link>
+  <joint name="left_shoulder_pitch_joint" type="revolute">
+    <parent link="left_shoulder_yaw_link"/>
+    <child link="left_shoulder_pitch_link"/>
+    <origin xyz="0 0.05 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.09" upper="2.09" effort="40" velocity="2.0"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+
+  <!-- J3: shoulder_roll (RS-03) -->
+  <link name="left_shoulder_roll_link">
+    <visual><geometry><cylinder radius="0.04" length="0.25"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.04" length="0.25"/></geometry></collision>
+    <inertial><mass value="0.9"/><inertia ixx="0.005" ixy="0" ixz="0" iyy="0.005" iyz="0" izz="0.001"/></inertial>
+  </link>
+  <joint name="left_shoulder_roll_joint" type="revolute">
+    <parent link="left_shoulder_pitch_link"/>
+    <child link="left_shoulder_roll_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1.57" upper="1.57" effort="25" velocity="2.5"/>
+    <dynamics damping="0.3" friction="0.1"/>
+  </joint>
+
+  <!-- J4: elbow_pitch (RS-03) -->
+  <link name="left_elbow_pitch_link">
+    <visual><geometry><cylinder radius="0.035" length="0.07"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.035" length="0.07"/></geometry></collision>
+    <inertial><mass value="0.8"/><inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.0005"/></inertial>
+  </link>
+  <joint name="left_elbow_pitch_joint" type="revolute">
+    <parent link="left_shoulder_roll_link"/>
+    <child link="left_elbow_pitch_link"/>
+    <origin xyz="0 0 -0.25" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.35" upper="0.0" effort="25" velocity="2.5"/>
+    <dynamics damping="0.3" friction="0.1"/>
+  </joint>
+
+  <!-- J5: wrist_yaw (RS-02) -->
+  <link name="left_wrist_yaw_link">
+    <visual><geometry><cylinder radius="0.03" length="0.2"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.03" length="0.2"/></geometry></collision>
+    <inertial><mass value="0.5"/><inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.0003"/></inertial>
+  </link>
+  <joint name="left_wrist_yaw_joint" type="revolute">
+    <parent link="left_elbow_pitch_link"/>
+    <child link="left_wrist_yaw_link"/>
+    <origin xyz="0 0 -0.07" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.96" upper="2.96" effort="10" velocity="3.0"/>
+    <dynamics damping="0.2" friction="0.05"/>
+  </joint>
+
+  <!-- J6: wrist_pitch (RS-02) -->
+  <link name="left_wrist_pitch_link">
+    <visual><geometry><cylinder radius="0.025" length="0.05"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.025" length="0.05"/></geometry></collision>
+    <inertial><mass value="0.3"/><inertia ixx="0.0005" ixy="0" ixz="0" iyy="0.0005" iyz="0" izz="0.0002"/></inertial>
+  </link>
+  <joint name="left_wrist_pitch_joint" type="revolute">
+    <parent link="left_wrist_yaw_link"/>
+    <child link="left_wrist_pitch_link"/>
+    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10" velocity="3.0"/>
+    <dynamics damping="0.2" friction="0.05"/>
+  </joint>
+
+  <!-- J7: wrist_roll (RS-01) -->
+  <link name="left_wrist_roll_link">
+    <visual><geometry><cylinder radius="0.02" length="0.04"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.02" length="0.04"/></geometry></collision>
+    <inertial><mass value="0.2"/><inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0001"/></inertial>
+  </link>
+  <joint name="left_wrist_roll_joint" type="revolute">
+    <parent link="left_wrist_pitch_link"/>
+    <child link="left_wrist_roll_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-3.14" upper="3.14" effort="5" velocity="4.0"/>
+    <dynamics damping="0.1" friction="0.02"/>
+  </joint>
+
+  <!-- Left Gripper (RS-01) -->
+  <link name="left_gripper_base_link">
+    <visual><geometry><box size="0.06 0.08 0.02"/></geometry><material name="dark_grey"/></visual>
+    <collision><geometry><box size="0.06 0.08 0.02"/></geometry></collision>
+    <inertial><mass value="0.15"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/></inertial>
+  </link>
+  <joint name="left_gripper_base_joint" type="fixed">
+    <parent link="left_wrist_roll_link"/>
+    <child link="left_gripper_base_link"/>
+    <origin xyz="0 0 -0.03" rpy="0 0 0"/>
+  </joint>
+
+  <link name="left_gripper_left_finger">
+    <visual><geometry><box size="0.01 0.02 0.06"/></geometry><material name="dark_grey"/></visual>
+    <collision><geometry><box size="0.01 0.02 0.06"/></geometry></collision>
+    <inertial><mass value="0.05"/><inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/></inertial>
+  </link>
+  <joint name="left_gripper_left_joint" type="prismatic">
+    <parent link="left_gripper_base_link"/>
+    <child link="left_gripper_left_finger"/>
+    <origin xyz="0 0.02 -0.04" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0.0" upper="0.04" effort="5" velocity="0.5"/>
+  </joint>
+
+  <link name="left_gripper_right_finger">
+    <visual><geometry><box size="0.01 0.02 0.06"/></geometry><material name="dark_grey"/></visual>
+    <collision><geometry><box size="0.01 0.02 0.06"/></geometry></collision>
+    <inertial><mass value="0.05"/><inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/></inertial>
+  </link>
+  <joint name="left_gripper_right_joint" type="prismatic">
+    <parent link="left_gripper_base_link"/>
+    <child link="left_gripper_right_finger"/>
+    <origin xyz="0 -0.02 -0.04" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0.0" upper="0.04" effort="5" velocity="0.5"/>
+  </joint>
+
+  <!-- Left end-effector (TCP) -->
+  <link name="left_tcp"/>
+  <joint name="left_tcp_joint" type="fixed">
+    <parent link="left_gripper_base_link"/>
+    <child link="left_tcp"/>
+    <origin xyz="0 0 -0.07" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== RIGHT ARM (7 DOF) ==================== -->
+  <!-- J1: shoulder_yaw (RS-04) -->
+  <link name="right_shoulder_yaw_link">
+    <visual><geometry><cylinder radius="0.045" length="0.08"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.045" length="0.08"/></geometry></collision>
+    <inertial><mass value="1.2"/><inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/></inertial>
+  </link>
+  <joint name="right_shoulder_yaw_joint" type="revolute">
+    <parent link="waist_link"/>
+    <child link="right_shoulder_yaw_link"/>
+    <origin xyz="0 -0.2 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.96" upper="2.96" effort="40" velocity="2.0"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+
+  <!-- J2: shoulder_pitch (RS-04) -->
+  <link name="right_shoulder_pitch_link">
+    <visual><geometry><cylinder radius="0.045" length="0.08"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.045" length="0.08"/></geometry></collision>
+    <inertial><mass value="1.2"/><inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/></inertial>
+  </link>
+  <joint name="right_shoulder_pitch_joint" type="revolute">
+    <parent link="right_shoulder_yaw_link"/>
+    <child link="right_shoulder_pitch_link"/>
+    <origin xyz="0 -0.05 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.09" upper="2.09" effort="40" velocity="2.0"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+
+  <!-- J3: shoulder_roll (RS-03) -->
+  <link name="right_shoulder_roll_link">
+    <visual><geometry><cylinder radius="0.04" length="0.25"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.04" length="0.25"/></geometry></collision>
+    <inertial><mass value="0.9"/><inertia ixx="0.005" ixy="0" ixz="0" iyy="0.005" iyz="0" izz="0.001"/></inertial>
+  </link>
+  <joint name="right_shoulder_roll_joint" type="revolute">
+    <parent link="right_shoulder_pitch_link"/>
+    <child link="right_shoulder_roll_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1.57" upper="1.57" effort="25" velocity="2.5"/>
+    <dynamics damping="0.3" friction="0.1"/>
+  </joint>
+
+  <!-- J4: elbow_pitch (RS-03) -->
+  <link name="right_elbow_pitch_link">
+    <visual><geometry><cylinder radius="0.035" length="0.07"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.035" length="0.07"/></geometry></collision>
+    <inertial><mass value="0.8"/><inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.0005"/></inertial>
+  </link>
+  <joint name="right_elbow_pitch_joint" type="revolute">
+    <parent link="right_shoulder_roll_link"/>
+    <child link="right_elbow_pitch_link"/>
+    <origin xyz="0 0 -0.25" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.35" upper="0.0" effort="25" velocity="2.5"/>
+    <dynamics damping="0.3" friction="0.1"/>
+  </joint>
+
+  <!-- J5: wrist_yaw (RS-02) -->
+  <link name="right_wrist_yaw_link">
+    <visual><geometry><cylinder radius="0.03" length="0.2"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.03" length="0.2"/></geometry></collision>
+    <inertial><mass value="0.5"/><inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.0003"/></inertial>
+  </link>
+  <joint name="right_wrist_yaw_joint" type="revolute">
+    <parent link="right_elbow_pitch_link"/>
+    <child link="right_wrist_yaw_link"/>
+    <origin xyz="0 0 -0.07" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.96" upper="2.96" effort="10" velocity="3.0"/>
+    <dynamics damping="0.2" friction="0.05"/>
+  </joint>
+
+  <!-- J6: wrist_pitch (RS-02) -->
+  <link name="right_wrist_pitch_link">
+    <visual><geometry><cylinder radius="0.025" length="0.05"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.025" length="0.05"/></geometry></collision>
+    <inertial><mass value="0.3"/><inertia ixx="0.0005" ixy="0" ixz="0" iyy="0.0005" iyz="0" izz="0.0002"/></inertial>
+  </link>
+  <joint name="right_wrist_pitch_joint" type="revolute">
+    <parent link="right_wrist_yaw_link"/>
+    <child link="right_wrist_pitch_link"/>
+    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10" velocity="3.0"/>
+    <dynamics damping="0.2" friction="0.05"/>
+  </joint>
+
+  <!-- J7: wrist_roll (RS-01) -->
+  <link name="right_wrist_roll_link">
+    <visual><geometry><cylinder radius="0.02" length="0.04"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.02" length="0.04"/></geometry></collision>
+    <inertial><mass value="0.2"/><inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0001"/></inertial>
+  </link>
+  <joint name="right_wrist_roll_joint" type="revolute">
+    <parent link="right_wrist_pitch_link"/>
+    <child link="right_wrist_roll_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-3.14" upper="3.14" effort="5" velocity="4.0"/>
+    <dynamics damping="0.1" friction="0.02"/>
+  </joint>
+
+  <!-- Right Gripper (RS-01) -->
+  <link name="right_gripper_base_link">
+    <visual><geometry><box size="0.06 0.08 0.02"/></geometry><material name="dark_grey"/></visual>
+    <collision><geometry><box size="0.06 0.08 0.02"/></geometry></collision>
+    <inertial><mass value="0.15"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/></inertial>
+  </link>
+  <joint name="right_gripper_base_joint" type="fixed">
+    <parent link="right_wrist_roll_link"/>
+    <child link="right_gripper_base_link"/>
+    <origin xyz="0 0 -0.03" rpy="0 0 0"/>
+  </joint>
+
+  <link name="right_gripper_left_finger">
+    <visual><geometry><box size="0.01 0.02 0.06"/></geometry><material name="dark_grey"/></visual>
+    <collision><geometry><box size="0.01 0.02 0.06"/></geometry></collision>
+    <inertial><mass value="0.05"/><inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/></inertial>
+  </link>
+  <joint name="right_gripper_left_joint" type="prismatic">
+    <parent link="right_gripper_base_link"/>
+    <child link="right_gripper_left_finger"/>
+    <origin xyz="0 0.02 -0.04" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0.0" upper="0.04" effort="5" velocity="0.5"/>
+  </joint>
+
+  <link name="right_gripper_right_finger">
+    <visual><geometry><box size="0.01 0.02 0.06"/></geometry><material name="dark_grey"/></visual>
+    <collision><geometry><box size="0.01 0.02 0.06"/></geometry></collision>
+    <inertial><mass value="0.05"/><inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/></inertial>
+  </link>
+  <joint name="right_gripper_right_joint" type="prismatic">
+    <parent link="right_gripper_base_link"/>
+    <child link="right_gripper_right_finger"/>
+    <origin xyz="0 -0.02 -0.04" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0.0" upper="0.04" effort="5" velocity="0.5"/>
+  </joint>
+
+  <!-- Right end-effector (TCP) -->
+  <link name="right_tcp"/>
+  <joint name="right_tcp_joint" type="fixed">
+    <parent link="right_gripper_base_link"/>
+    <child link="right_tcp"/>
+    <origin xyz="0 0 -0.07" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== HEAD ==================== -->
+  <link name="head_pan_link">
+    <visual><geometry><cylinder radius="0.04" length="0.04"/></geometry><material name="silver"/></visual>
+    <collision><geometry><cylinder radius="0.04" length="0.04"/></geometry></collision>
+    <inertial><mass value="0.3"/><inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/></inertial>
+  </link>
+  <joint name="head_pan_joint" type="revolute">
+    <parent link="waist_link"/>
+    <child link="head_pan_link"/>
+    <origin xyz="0 0 0.15" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.57" upper="1.57" effort="5" velocity="1.0"/>
+  </joint>
+
+  <link name="head_tilt_link">
+    <visual><geometry><box size="0.08 0.1 0.06"/></geometry><material name="dark_grey"/></visual>
+    <collision><geometry><box size="0.08 0.1 0.06"/></geometry></collision>
+    <inertial><mass value="0.4"/><inertia ixx="0.0003" ixy="0" ixz="0" iyy="0.0003" iyz="0" izz="0.0003"/></inertial>
+  </link>
+  <joint name="head_tilt_joint" type="revolute">
+    <parent link="head_pan_link"/>
+    <child link="head_tilt_link"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.78" upper="0.78" effort="5" velocity="1.0"/>
+  </joint>
+
+  <!-- ==================== ZED X MINI ==================== -->
+  <link name="zed_camera_link"/>
+  <joint name="head_to_zed" type="fixed">
+    <parent link="head_tilt_link"/>
+    <child link="zed_camera_link"/>
+    <origin xyz="0.04 0 0.02" rpy="0 0 0"/>
+  </joint>
+
+  <link name="zed_left_camera_frame"/>
+  <joint name="zed_to_left" type="fixed">
+    <parent link="zed_camera_link"/>
+    <child link="zed_left_camera_frame"/>
+    <origin xyz="0 0.0325 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="zed_left_camera_optical_frame"/>
+  <joint name="left_to_optical" type="fixed">
+    <parent link="zed_left_camera_frame"/>
+    <child link="zed_left_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+  </joint>
+
+  <link name="zed_right_camera_frame"/>
+  <joint name="zed_to_right" type="fixed">
+    <parent link="zed_camera_link"/>
+    <child link="zed_right_camera_frame"/>
+    <origin xyz="0 -0.0325 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="zed_right_camera_optical_frame"/>
+  <joint name="right_to_optical" type="fixed">
+    <parent link="zed_right_camera_frame"/>
+    <child link="zed_right_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+  </joint>
+
+  <link name="zed_imu_link"/>
+  <joint name="zed_to_imu" type="fixed">
+    <parent link="zed_camera_link"/>
+    <child link="zed_imu_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== ROS2_CONTROL ==================== -->
+  <ros2_control name="left_arm_system" type="system">
+    <hardware>
+      <plugin>robot_hardware/RobStrideHardwareInterface</plugin>
+      <param name="can_interface">can0</param>
+      <param name="motor_ids">1,2,3,4,5,6,7,8</param>
+    </hardware>
+    <joint name="left_shoulder_yaw_joint">
+      <command_interface name="position"><param name="min">-2.96</param><param name="max">2.96</param></command_interface>
+      <command_interface name="velocity"><param name="min">-2.0</param><param name="max">2.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="left_shoulder_pitch_joint">
+      <command_interface name="position"><param name="min">-2.09</param><param name="max">2.09</param></command_interface>
+      <command_interface name="velocity"><param name="min">-2.0</param><param name="max">2.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="left_shoulder_roll_joint">
+      <command_interface name="position"><param name="min">-1.57</param><param name="max">1.57</param></command_interface>
+      <command_interface name="velocity"><param name="min">-2.5</param><param name="max">2.5</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="left_elbow_pitch_joint">
+      <command_interface name="position"><param name="min">-2.35</param><param name="max">0.0</param></command_interface>
+      <command_interface name="velocity"><param name="min">-2.5</param><param name="max">2.5</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="left_wrist_yaw_joint">
+      <command_interface name="position"><param name="min">-2.96</param><param name="max">2.96</param></command_interface>
+      <command_interface name="velocity"><param name="min">-3.0</param><param name="max">3.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="left_wrist_pitch_joint">
+      <command_interface name="position"><param name="min">-1.57</param><param name="max">1.57</param></command_interface>
+      <command_interface name="velocity"><param name="min">-3.0</param><param name="max">3.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="left_wrist_roll_joint">
+      <command_interface name="position"><param name="min">-3.14</param><param name="max">3.14</param></command_interface>
+      <command_interface name="velocity"><param name="min">-4.0</param><param name="max">4.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="left_gripper_left_joint">
+      <command_interface name="position"><param name="min">0.0</param><param name="max">0.04</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <ros2_control name="right_arm_system" type="system">
+    <hardware>
+      <plugin>robot_hardware/RobStrideHardwareInterface</plugin>
+      <param name="can_interface">can1</param>
+      <param name="motor_ids">1,2,3,4,5,6,7,8</param>
+    </hardware>
+    <joint name="right_shoulder_yaw_joint">
+      <command_interface name="position"><param name="min">-2.96</param><param name="max">2.96</param></command_interface>
+      <command_interface name="velocity"><param name="min">-2.0</param><param name="max">2.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="right_shoulder_pitch_joint">
+      <command_interface name="position"><param name="min">-2.09</param><param name="max">2.09</param></command_interface>
+      <command_interface name="velocity"><param name="min">-2.0</param><param name="max">2.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="right_shoulder_roll_joint">
+      <command_interface name="position"><param name="min">-1.57</param><param name="max">1.57</param></command_interface>
+      <command_interface name="velocity"><param name="min">-2.5</param><param name="max">2.5</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="right_elbow_pitch_joint">
+      <command_interface name="position"><param name="min">-2.35</param><param name="max">0.0</param></command_interface>
+      <command_interface name="velocity"><param name="min">-2.5</param><param name="max">2.5</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="right_wrist_yaw_joint">
+      <command_interface name="position"><param name="min">-2.96</param><param name="max">2.96</param></command_interface>
+      <command_interface name="velocity"><param name="min">-3.0</param><param name="max">3.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="right_wrist_pitch_joint">
+      <command_interface name="position"><param name="min">-1.57</param><param name="max">1.57</param></command_interface>
+      <command_interface name="velocity"><param name="min">-3.0</param><param name="max">3.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="right_wrist_roll_joint">
+      <command_interface name="position"><param name="min">-3.14</param><param name="max">3.14</param></command_interface>
+      <command_interface name="velocity"><param name="min">-4.0</param><param name="max">4.0</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="right_gripper_left_joint">
+      <command_interface name="position"><param name="min">0.0</param><param name="max">0.04</param></command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+</robot>
